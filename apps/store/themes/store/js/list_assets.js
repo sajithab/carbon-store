@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
+var categorizationArray = [];
 var initCategorySelection = function () {
     $('div.category ul.dropdown-menu li a').click(function (e) {
         e.preventDefault();
@@ -141,4 +141,30 @@ $(window).load(function () {
     if (document.getElementById("categoryDropDown") != null) {
         document.getElementById("categoryDropDown").title = document.getElementById("categoryDropDown").text.trim()
     }
+});
+
+$( document ).ready(function() {
+    //This code was added to check weather the search query contains of the search query cookie and if it contains
+    //set the search field to the value of cookie
+    if($('#search').val() !== '' && $('#search').val().indexOf($.cookie("searchQuery")) > -1){
+        $('#search').val($.cookie("searchQuery"));
+    } else {
+        $('#search').val('');
+    }
+
+
+    (store.assetCount > 0) ? assetAvailability = true : assetAvailability = false;
+
+
+    $('.dropdown-toggle').on('click', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        //$("#iddrop").toggleClass('open');
+        // debugger;
+        $(this).parent().siblings().removeClass('open');
+        //  debugger;
+        $(this).parent().toggleClass('open');
+
+    });
+
 });

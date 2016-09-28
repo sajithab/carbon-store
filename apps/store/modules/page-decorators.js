@@ -42,6 +42,7 @@ var pageDecorators = {};
         page.isUserDomainAndUrlDomainDifferent = tenantAppResources.isUserDomainAndUrlDomainDifferent;
         page.navigationBar = {};
         var isLandingPage = true;
+        var noTypeSelected = true;
         for (var index in availableTypes) {
             type = availableTypes[index];
             if (permissionsAPI.hasAssetPermission(permissionsAPI.ASSET_LIST, type, ctx.tenantId, ctx.username)) {
@@ -53,10 +54,12 @@ var pageDecorators = {};
                     currentType.selected = true;
                     currentType.style = "active home top-item";
                     isLandingPage = false;
+                    noTypeSelected = false;
                 }
                 types.push(currentType);
             }
         }
+        page.navigationBar.noTypeSelected = noTypeSelected;
         page.navigationBar.types = types;
         page.navigationBar.landingPage = isLandingPage;
         return page;
@@ -113,6 +116,9 @@ var pageDecorators = {};
         page.assetCategoryDetails.hasCategories = false;
         page.assetCategoryDetails.values = [];
         var categoryField = ctx.rxtManager.getCategoryField(ctx.assetType);
+        if (!categoryField) {
+            return;
+        }
         var categoryValues = [];
         var field = ctx.rxtManager.getRxtField(ctx.assetType, categoryField);
         var q = request.getParameter("q");
@@ -134,6 +140,64 @@ var pageDecorators = {};
         }
         page.assetCategoryDetails.hasCategories = true;
         page.assetCategoryDetails.values = categoryValues;
+    };
+    pageDecorators.assetCategoryFilterDetails = function (ctx, page) {
+        if (page.meta.pageName != 'list') {
+            return;
+        }
+        var paging = {};
+        page.assetCategoryFilterDetails = [];
+        var categorizationFields = ctx.rxtManager.listRxtCategoryFields(ctx.assetType, "options");
+        var updatedCategorizationFields = [];
+        var isVisible = false;
+
+        for (var index=0; index < categorizationFields.length; index++) {
+            var updatedCategorizationField = {};
+            var categorizationField = categorizationFields[index];
+            var parentId = categorizationField.name.fullName;
+            var childValues = [];
+            var childFields = [];
+            updatedCategorizationField.text = categorizationField.name.label;
+            updatedCategorizationField.priority = categorizationField.priority;
+            updatedCategorizationField.id = parentId;
+            updatedCategorizationField.divId = parentId + index;
+            if (ctx.rxtManager.isSolarFacetsEnabled(ctx.assetType)) {
+                childValues = doTermSearch(ctx,
+                    parentId, paging, true);
+            } else {
+                childValues = categorizationField.values[0].value;
+            }
+
+            if (index < ctx.rxtManager.collapseInCount(ctx.assetType)){
+                updatedCategorizationField.isCollapseIn = true;
+            } else {
+                updatedCategorizationField.isCollapseIn = false;
+            }
+
+            for(var childIndex=0; childIndex < childValues.length; childIndex++){
+                var childCategorizationField = {};
+                var localField = childValues[childIndex];
+                childCategorizationField.text = localField.value;
+                childCategorizationField.id = parentId + "_child" + childIndex;
+                childCategorizationField.parent = parentId;
+
+                childFields.push(childCategorizationField);
+            }
+            updatedCategorizationField.children = childFields;
+            updatedCategorizationFields.push(updatedCategorizationField);
+        }
+        for(var i=0; i < updatedCategorizationFields.length; i++){
+            if(updatedCategorizationFields[i].children.length != 0){
+                isVisible = true;
+            }
+        }
+
+        updatedCategorizationFields.sort(function (field1, field2) {
+            return parseInt(field1.priority) - parseInt(field2.priority);
+        });
+
+        page.assetCategoryFilterDetails = updatedCategorizationFields;
+        page.isVisible = isVisible;
     };
     pageDecorators.recentAssetsOfActivatedTypes = function(ctx, page) {
         var app = require('rxt').app;
@@ -164,11 +228,14 @@ var pageDecorators = {};
             return permissions.hasAssetPermission(permissions.ASSET_BOOKMARK, type, tenantId, username);
         };
         var bookmarkPerms = {};
-        var paging = {'start': 0,
+        var paging = {
+            'start': 0,
             'count': 8,
             'sortOrder': 'desc',
             'sortBy': 'createdDate',
-            'paginationLimit': 8 };
+            'paginationLimit': 8
+        };
+
         // check whether the given query is a mediaType search query. Due to REGISTRY-3379.
         // case 1 : Search query provided with mediaType search
         if(isMediaType(query,types)){
@@ -240,9 +307,9 @@ var pageDecorators = {};
      */
     var isMediaType = function(q,types){
          var hasMediaType = q ? Boolean(q.mediaType) : false;
-         //if a query is not provided or if media type is not provided we will skip media scoping 
+         //if a query is not provided or if media type is not provided we will skip media scoping
          if(!hasMediaType) {
-            return hasMediaType;            
+            return hasMediaType;
          }
          var mediaType = q.mediaType;
         return types.filter(function(type){
@@ -346,7 +413,7 @@ var pageDecorators = {};
             'sortBy': '',
             'paginationLimit': 0
         };
-        //Obtain tenant aware resources 
+//Obtain tenant aware resources
         var resources = tenantApi.createTenantAwareAssetResources(ctx.session, {
             type: ctx.assetType
         });
@@ -357,6 +424,21 @@ var pageDecorators = {};
         if((page.meta.pageName === 'details')&&(page.assets.id)){
             page.appliedTags = appliedTags(resources.am,page.assets.id);
         }
+        if ((page.appliedTags && page.appliedTags.length > 0) || page.meta.pageName === 'list') {
+            page.showTagCloud = true;
+        }
+        var mytags = doTermSearch(ctx,'tags', paging, true);
+        var assetTags = page.appliedTags || [];
+        var retTags = [];
+
+        for (var i=0;i<mytags.length;i++) {
+            mytags[i].applied = assetTags.indexOf(String(mytags[i].value)) > -1;
+            if (mytags[i].value.indexOf("/") < 0) {
+                retTags.push(mytags[i]);
+            }
+        }
+        page.tags = retTags;
+        page.selectedTag = selectedTag(ctx);
         return page;
     };
     pageDecorators.myAssets = function(ctx, page) {
@@ -535,6 +617,18 @@ var pageDecorators = {};
         page.searchHistory = {};
         page.searchHistory.queries = userApi.getSearchHistory(ctx.session, ctx.assetType);
     };
+    /**
+     * This method will check for taxonomies availability in rxt definition
+     * @param ctx request meta data
+     * @param page page data
+     */
+    pageDecorators.taxonomyAvailability = function (ctx, page) {
+        var rxtModule = require('rxt');
+        var coreApi = rxtModule.core;
+        var rxtManager = coreApi.rxtManager(ctx.tenantId);
+        page.taxonomyAvailability = (rxtManager.getTaxonomyAvailability(ctx.assetType).length > 0);
+        page.topAssetTaxonomyAvailability = (rxtManager.getTopAssetTaxonomyAvailability());
+    };
     var getAssetManager = function(ctx) {
         //       var asset = require('rxt').asset;
         var am;
@@ -605,13 +699,11 @@ var pageDecorators = {};
     var doTermSearch = function (ctx, facetField, paging, authRequired) {
         var terms = [];
         var results;
-        var categoryField;
-        if(ctx.assetType) {
-            categoryField = ctx.rxtManager.getCategoryField(ctx.assetType);
-        }
         var selectedTag;
-        var map = HashMap();
+        var map = new HashMap();
         var mediaType;
+        var app = require('rxt').app;
+        var asset = require('rxt').asset;
         var searchPage = '/pages/top-assets';
         var rxtManager = ctx.rxtManager;
         if (ctx.assetType) {
@@ -636,13 +728,12 @@ var pageDecorators = {};
         var q = request.getParameter("q");
         if (q) {
             var options = parse("{" + q + "}");
-            if (options.category) {
-                var list = new ArrayList();
-                list.add(options.category);
-                if(categoryField) {
-                    map.put(categoryField, list);
-                }
-            }
+            /*if (facetField == "tags") {
+                map = buildQueryMapTags(ctx, options);
+            } else {
+                map = buildQueryMap(ctx, options);
+            }*/
+
             if (options.tags) {
                 selectedTag = options.tags;
             }
@@ -651,7 +742,12 @@ var pageDecorators = {};
         if (facetField) {
             try {
                 buildPaginationContext(paging);
-                results = GovernanceUtils.getTermDataList(map, facetField, mediaType, authRequired);
+                //results = GovernanceUtils.getTermDataList(map, facetField, mediaType, authRequired);
+                var am = getAssetManager(ctx);
+                q = q  ? q : (q='');
+                q = parse('{' + q + '}' );
+                var query = asset.buildQuery(ctx.assetType, rxtManager, app, q);
+                results = GovernanceUtils.getTermDataList(query, facetField, mediaType, am.registry.registry);
                 var iterator = results.iterator();
                 while (iterator.hasNext()) {
                     var current = iterator.next();
@@ -673,6 +769,97 @@ var pageDecorators = {};
         }
         return terms;
     };
+
+    /**
+     * Builds the criteria map to do the facet search.
+     *
+     * @param ctx           context
+     * @param options       query options
+     * @returns {HashMap}   map of criteria
+     */
+    var buildQueryMap = function (ctx, options) {
+        var possibleKeys = ['_default', 'name', 'version', 'tags', 'lcName', 'lcState'];
+        var rxtManager = ctx.rxtManager;
+        var assetType = ctx.assetType;
+        var map = new HashMap();
+        var list;
+        var keys = Object.keys(options);
+        keys.forEach(function (key) {
+            var searchKey = key;
+            if (searchKey === 'name' || searchKey === '_default') {
+                searchKey = rxtManager.getNameAttribute(assetType);
+            } else if (searchKey === 'version') {
+                searchKey = rxtManager.getVersionAttribute(assetType);
+            }
+
+            list = new ArrayList();
+
+            if (searchKey === 'taxonomy') {
+                var taxonomyQuery = options.taxonomy;
+                taxonomyQuery = taxonomyQuery.replace(/\(\s/g, '(');
+                taxonomyQuery = taxonomyQuery.replace(/\s\)/g, ')');
+                list = new ArrayList();
+                list.add(taxonomyQuery);
+                map.put(searchKey, list);
+            } else if (possibleKeys.indexOf(key) > -1) {
+                list.add('*' + options[key] + '*');
+                map.put(searchKey, list);
+            }
+        });
+
+        if (options.category) {
+            var categoryField;
+            if (ctx.assetType) {
+                categoryField = rxtManager.getCategoryField(assetType);
+            }
+            list = new ArrayList();
+            list.add(options.category);
+            if (categoryField) {
+                map.put(categoryField, list);
+            }
+        }
+        return map;
+    };
+
+   
+    /**
+     * Builds the criteria map to do the facet search.
+     *
+     * @param ctx           context
+     * @param options       query options
+     * @returns {HashMap}   map of criteria
+     */
+    var buildQueryMapTags = function (ctx, options) {
+        var map = new HashMap();
+        var list;
+        var keys = Object.keys(options);
+
+        //Case #1 : Only a single tag is selected
+        //Set A - assets with the currently applied tag
+        //In this case we need to retrieve the set of tags in set A
+        if((keys.length === 1) && (keys[0]==='tags')) {
+             list = new ArrayList();
+             list.add('*' + options[keys[0]] + '*');
+             map.put(keys[0],list);
+             return map;
+        }
+
+        //Case #2 = Multiple filtering criteria with a possible tag
+        //Set B - assets satisfying the provided filter criteria
+        //We need to retrieve the tags which are in the intersection
+        //of set A and set B
+        keys.forEach(function (key) {
+            list = new ArrayList();
+            //Omit tags as it will return a union of set A and B
+            if (key != "tags"){
+                list.add('*' + options[key] + '*');
+                map.put(key, list);
+            }
+
+        });
+        return map;
+    };
+
 
     var selectedTag = function (ctx) {
 

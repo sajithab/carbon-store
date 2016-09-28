@@ -71,7 +71,7 @@ $(function () {
                     }, 1000);
                 return false;
             }
-            messages.alertInfoLoader('<i class="fa fa-spinner fa-spin"></i> <strong>Creating the new asset</strong>.Please wait .....');
+            messages.alertInfoLoader('<i class="fa fa-spinner fa-pulse" id="assetLoader"></i> <strong>Creating the new asset</strong>. Please wait...<i class="fa fa-close" onclick="clearWaiting()"></i>');
         },
         success: function (data) {
             var options = obtainFormMeta('#form-asset-create');
@@ -193,6 +193,22 @@ $(function () {
             $('.field-title').eq(index).addClass("collapsed");
         }
     });
+   
+    initTaxonomyBrowser(null);
 
+    String.prototype.replaceAll = function (find, replace) {
+        var str = this;
+        return str.replace(new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replace);
+    };
 
+    $('#btn-create-asset').click(function (e) {
+        var taxonomyList = $('#taxonomy-list')[0];
+        if (selectedTaxonomy && taxonomyList) {
+            taxonomyList.value = selectedTaxonomy.join(',');
+        }
+    });
+
+    $('button[type=reset]').click(function (e) {
+        initTaxonomyBrowser(null);
+    });
 });

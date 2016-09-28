@@ -46,11 +46,16 @@ h4{font-weight: 400; font-size: 20px;}
 .assetp-properties .tab-content {
     overflow: visible;
 }
+#assets-container .nav-tabs > li > a:hover{
+    background: #161616;
+}
+#assets-container .nav-tabs > li.active > a:hover{
+    background: #fff;
+}
 #tab-reviews {
-    /*position: absolute;*/
-    /*display: block;*/
-    /*visibility: hidden;*/
-    /*top:-9999px;*/
+    border-left: solid 1px #ccc;
+    border-right: solid 1px #ccc;
+    border-bottom: solid 1px #ccc;
 }
 
 #tab-reviews li {
@@ -208,9 +213,16 @@ h4{font-weight: 400px;}
     right: -1px;
     background: #fff;
 }*/
-.details-image{padding: 0; width:27%; float: left; transition:all 0.5s ease; margin-bottom: 15px;}
-.details-container{ float: left; transition:all 0.5s ease; width:73%; padding-left: 10px; }
-.action-container{width:auto;padding:15px 0 15px 15px ; display:inline-block;min-width: 211px;}
+.details-image {
+    padding: 0;
+    width: 150px;
+    float: left;
+    transition: all 0.5s ease;
+    margin-bottom: 15px;
+}
+
+.details-container{ float: left; transition:all 0.5s ease;  padding-left: 10px; }
+.action-container{width:auto;padding:10px 0 0 0 ; display:inline-block;min-width: 211px;}
 .action-sub-container{width: auto; height: auto; float: left; vertical-align:middle; padding-right: 6px;}
 .action-lable{width:85px; height: auto;}
 .blue-button {

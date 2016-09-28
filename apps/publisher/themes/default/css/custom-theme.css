@@ -58,6 +58,7 @@
     padding:0;
     top:45px;
     right: 5px;
+    background-color: transparent;
 }
 .wr-global-header .dropdown-menu > li > a{
     padding:10px 10px;
@@ -287,7 +288,7 @@ a.ctrl-filter-category:hover {
 }
 .ast-img .ast-type-icon i{
     font-size:2.2em;
-    padding:9px 2px;
+    padding:8px 2px;
 }
 .ast-desc {
     /*float:left;*/
@@ -441,30 +442,6 @@ a.ctrl-filter-category:hover {
 
 .wr-auth-container{
     padding-right:0px;
-}
-.dropdown-menu {
-    position: absolute;
-    top: 32px;
-    right: 0;
-    left: auto;
-    z-index: 1000;
-    display: none;
-    float: left;
-    min-width: 160px;
-    padding: 5px 0;
-    margin: 2px 0px 0;
-    font-size: 14px;
-    text-align: left;
-    list-style: none;
-    background-color: transparent;
-    -webkit-background-clip: padding-box;
-    background-clip: padding-box;
-    border: 0px solid #ccc;
-    border: 0px solid rgba(0,0,0,.15);
-    border-radius: 0px;
-    -webkit-box-shadow: 0 0px 0px rgba(0,0,0,.175);
-    box-shadow: 0 0px 0px rgba(0,0,0,.175);
-
 }
 
 .dropdown-menu-content {
@@ -648,4 +625,11 @@ ul.sort-list li a.active:hover{
 }
 .margin-bottom-align{
     margin-bottom: -10px;
+}
+.colorbar{
+    height: 13px;
+    margin-top: 3px;
+    margin-right: 2px;
+    width: 15px;
+    float:left;
 }

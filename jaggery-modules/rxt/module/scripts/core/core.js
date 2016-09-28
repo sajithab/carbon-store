@@ -163,6 +163,14 @@ var core = {};
         rxtField.name = {};
         rxtField.name = nameBlock[0];
     };
+    /***
+     *
+     * @param term
+     * @returns {string}
+     */
+    var defaultSearchTemplateImpl = function(term){
+        return constants.DEFAULT_SEARCH_ATTRIBUTE+":"+term;
+    };
     /**
      * Represents an interface for managing interactions with the different
      * RXT types deployed in the Governance Registry
@@ -585,6 +593,157 @@ var core = {};
         return '';
     };
     /**
+     * Returns the  taxonomy availability that is attached to assets of a given RXT type
+     * If no taxonomy is specified then an empty string is returned.
+     * Note: This property is specific to the ES and is defined in the configuration callback
+     * @param  {String} type  The RXT type
+     * @return {String}      The name of a taxonomy which is attached to all asset instances of an RXT type
+     */
+
+    RxtManager.prototype.getTaxonomyAvailability = function (type) {
+        var rxtDefinition = this.rxtMap[type];
+        return taxonomyAvailability(type, rxtDefinition);
+    };
+
+    RxtManager.prototype.getTopAssetTaxonomyAvailability = function () {
+        return checkGlobalTaxonomies();
+    };
+
+    /**
+     * Returns the name of the taxonomy that is attached to assets of a given RXT type
+     * If no taxonomy is specified then an empty string is returned.
+     * Note: This property is specific to the ES and is defined in the configuration callback
+     * @param  {String} type  The RXT type
+     * @return {String}      The name of a taxonomy which is attached to all asset instances of an RXT type
+     * @throws Unable to locate the rxt definition for type in order to return taxonomy
+     */
+    RxtManager.prototype.getTaxonomies = function (type) {
+        var rxtDefinition = this.rxtMap[type];
+        if (!rxtDefinition) {
+            log.error('Unable to locate the rxt definition for type: ' + type + ' in order to return taxonomy ');
+            throw 'Unable to locate the rxt definition for type: ' + type + ' in order to return taxonomy ';
+        }
+        return taxonomyAvailability(type, rxtDefinition);
+
+    };
+
+    /**
+     * This method will return the available taxonomies for a given asset type by reading tenant specific map
+     * @param type asset type
+     * @param rxtDefinition specific for a tenant
+     * @returns  array of available taxonomies
+     */
+    var taxonomyAvailability = function (type, rxtDefinition) {
+        var carbon = require('carbon');
+        var TaxonomyService = carbon.server.osgiService('org.wso2.carbon.governance.taxonomy.services.' +
+            'ITaxonomyServices');
+        var taxonomies;
+        var taxonomyArray = [];
+        var returnArray = [];
+        if (rxtDefinition) {
+            if (rxtDefinition.taxonomies && (rxtDefinition.taxonomies[0]) && (rxtDefinition.taxonomies[0].taxonomy)) {
+                taxonomies = rxtDefinition.taxonomies[0].taxonomy || '';
+            }
+        } else {
+            return returnArray;
+        }
+
+        if (rxtDefinition && rxtDefinition.taxonomies) {
+            // taxonomy element will be there in rxt definition
+            if (taxonomies) {
+                var queryBean = Packages.org.wso2.carbon.governance.taxonomy.beans.QueryBean;
+                queryBean = new queryBean();
+
+                for (var i = 0; i < taxonomies.length; i++) {
+                    queryBean.setTaxonomyName(taxonomies[i].name);
+                    if (TaxonomyService.getTaxonomyBean(queryBean)) {
+                        if (!taxonomies[i].disable) {
+                            taxonomyArray.push(taxonomies[i].name);
+                        }
+
+                    } else {
+                        log.error("The taxonomy name : " + taxonomies[i].name + " not matched with rxt definition. " +
+                            "Please check you have entered the correct name");
+                    }
+                }
+
+                var taxonomiesDefinition = rxtDefinition.taxonomies[0] || {};
+                var excludeGlobal = (taxonomiesDefinition.hasOwnProperty('excludeGlobal') &&
+                (String(taxonomiesDefinition.excludeGlobal) === 'true') )? true : false;
+                excludeGlobal = excludeGlobal && checkGlobalTaxonomies();
+                if (!excludeGlobal) {
+                    returnArray = taxonomyArray.concat(getGlobalTaxonomies());
+                } else {
+                    return taxonomyArray;
+                }
+            } else {
+                // no taxonomy element  in rxt definition
+                if (checkGlobalTaxonomies() && !rxtDefinition.taxonomies[0].excludeGlobal) {
+                    returnArray = getGlobalTaxonomies();
+                }
+            }
+
+        } else {
+            // this will trigger when there is no taxonomies element in RXT
+            if (checkGlobalTaxonomies()) {
+                returnArray = getGlobalTaxonomies();
+            }
+        }
+
+        return returnArray;
+    };
+
+    /**
+     * This method will return all global taxonomy list
+     * @returns {Array}
+     */
+    var getGlobalTaxonomies = function () {
+        var TaxonomyService = carbon.server.
+        osgiService('org.wso2.carbon.governance.taxonomy.services.ITaxonomyServices');
+        var HashMap = java.util.HashMap;
+        var map = new HashMap();
+        map = TaxonomyService.getTaxonomyBeanMap();
+        var entries = map.entrySet().iterator();
+        var topAssetArray = [];
+
+        while (entries.hasNext()) {
+            var obj = entries.next();
+
+            if (obj.getValue().isTaxonomyGlobal()) {
+
+                topAssetArray.push(obj.getKey());
+            }
+        }
+
+        return topAssetArray;
+
+    };
+    /**
+     * Check for global taxonomy availability
+     *
+     * @returns {boolean}
+     */
+    var checkGlobalTaxonomies = function () {
+        var TaxonomyService = carbon.server.
+        osgiService('org.wso2.carbon.governance.taxonomy.services.ITaxonomyServices');
+        var HashMap = java.util.HashMap;
+        var map = new HashMap();
+        map = TaxonomyService.getTaxonomyBeanMap();
+        if (map) {
+            var entries = map.entrySet().iterator();
+            while (entries.hasNext()) {
+                var obj = entries.next();
+
+                if (obj.getValue().isTaxonomyGlobal()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
+    };
+    /**
      * Returns the action that is invoked when a lifecycle is first attached to an asset of a given RXT type.
      * Note: This property is specific to the ES and is defined in the configuration callback
      * @param  {String} type The RXT type
@@ -622,6 +781,79 @@ var core = {};
         }
         if (log.isDebugEnabled()) {
             log.debug('Unable to locate the lifecycle meta property to determine whether comments are required ' + type + '.Make sure the lifecycle meta property is present in the configuratio callback of the asset.js');
+        }
+        return false;
+    };
+    RxtManager.prototype.isSolarFacetsEnabled = function(type){
+        var rxtDefinition = this.rxtMap[type];
+        if (!rxtDefinition) {
+            log.error('Unable to locate the rxt definition for type: ' + type);
+            throw 'Unable to locate the rxt definition for type: ' + type
+            + ' in order to determine if the asset can be downloaded';
+        }
+        if ((rxtDefinition.meta) && (rxtDefinition.meta.categorization)) {
+            return rxtDefinition.meta.categorization.solarFacetsEnabled || false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug('Unable to locate the  meta property to determine whether ' +
+                'solar facets is enabled in categorization for ' + type
+                + '.Make sure the meta property is present in the configuration callback of the asset.js');
+        }
+        return false;
+    };
+    RxtManager.prototype.defaultSearchSplit = function(type){
+        if(!type){
+            var userMod = require('store').user;
+            var configs = userMod.configs(this.registry.tenantId) || {};
+            var templateFuncCommon = configs.defaultSearchSplit || defaultSearchTemplateImpl;
+            return templateFuncCommon;
+        }
+        var rxtDefinition = this.rxtMap[type];
+        if (!rxtDefinition) {
+            log.error('Unable to locate the rxt definition for type: ' + type);
+            throw 'Unable to locate the rxt definition for type: ' + type
+            + ' in order to determine if the asset can be downloaded';
+        }
+        if ((rxtDefinition.meta) && (rxtDefinition.meta.search)) {
+            var templateFuncSpecific = rxtDefinition.meta.search.defaultSearchSplit || defaultSearchTemplateImpl;
+            return templateFuncSpecific;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug('Unable to locate the  meta property to determine whether ' +
+                'solar facets is enabled in defaultSearch for ' + type
+                + '.Make sure the meta property is present in the configuration callback of the asset.js');
+        }
+    };
+    RxtManager.prototype.defaultSearchString = function(type){
+        var rxtDefinition = this.rxtMap[type];
+        if (!rxtDefinition) {
+            log.error('Unable to locate the rxt definition for type: ' + type);
+            return null;
+        }
+        if ((rxtDefinition.meta) && (rxtDefinition.meta.search) && (rxtDefinition.meta.search.defaultSearchString)) {
+            var templateFuncSpecific = rxtDefinition.meta.search.defaultSearchString;
+            return templateFuncSpecific.toString();
+        }
+        if (log.isDebugEnabled()) {
+            log.debug('Unable to locate the  meta property to determine whether ' +
+                'solar facets is enabled in defaultSearch for ' + type
+                + '.Make sure the meta property is present in the configuration callback of the asset.js');
+        }
+    };
+    RxtManager.prototype.collapseInCount = function(type){
+        var rxtDefinition = this.rxtMap[type];
+        if (!rxtDefinition) {
+            log.error('Unable to locate the rxt definition for type: ' + type);
+            throw 'Unable to locate the rxt definition for type: ' + type
+            + ' in order to determine if the asset can be downloaded';
+        }
+        if ((rxtDefinition.meta) && (rxtDefinition.meta.categorization)) {
+            return rxtDefinition.meta.categorization.collapseInMenuCount || 0;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug('Unable to locate the  meta property to determine whether ' +
+                'collapse in menu is enabled in categorization for ' + type
+                + '.Make sure the meta property is present in the configuration callback of the asset.js');
         }
         return false;
     };
@@ -760,6 +992,42 @@ var core = {};
         }
         return result;
     };
+
+    /**
+     * Returns all fields that match field type provided in the RXT definition
+     * @example
+     *     var fields = rxtManager.listRxtFieldsOfType('gadget','file');
+     *     print( fields ); // ['images_thumbnail', 'images_banner'];
+     * @param  {String} type      The RXT type
+     * @param  {String} fieldType The field type
+     * @return {Array}           An array of category fields qualified by the table name
+     */
+    RxtManager.prototype.listRxtCategoryFields = function(type, fieldType) {
+        var tables = this.listRxtTypeTables(type);
+        if (tables.length == 0) {
+            if (log.isDebugEnabled()) {
+                log.debug('The rxt definition for ' + type + ' does not have any tables.');
+            }
+            return [];
+        }
+        var table;
+        var field;
+        var result = [];
+        //Go through all of the tables
+        for (var key in tables) {
+            table = tables[key];
+            for (var fieldName in table.fields) {
+                field = table.fields[fieldName];
+                if (field.type == fieldType) {
+                    if(field.categorization){
+                        result.push(field);
+                    }
+                }
+            }
+        }
+        return result;
+    };
+
     RxtManager.prototype.listRxtFields = function(type) {
         var tables = this.listRxtTypeTables(type);
         var fields = [];
@@ -1017,9 +1285,10 @@ var core = {};
     RxtManager.prototype.getSortingAttributes = function(type) {
         var rxtDefinition = this.rxtMap[type];
         if (!rxtDefinition) {
-            log.error('Unable to locate the rxt definition for type: ' + type +
-                ' in order to return sortable field names');
-            throw 'Unable to locate the rxt definition for type: ' + type + ' in order to return sortable field names ';
+            var message = 'Unable to locate the rxt definition for type: ' + type
+                + ' in order to return sortable field names ';
+            log.error(message);
+            throw message;
         }
         if ((rxtDefinition.meta) && (rxtDefinition.meta.sorting) && (rxtDefinition.meta.sorting.attributes)) {
             return rxtDefinition.meta.sorting.attributes;
@@ -1224,8 +1493,23 @@ var core = {};
     };
     core.assetTypeDeploymentTimeMap = function(tenantId){
         var server = require('store').server;
-        var systemRegistry = server.systemRegistry(tenantId);
-        var collection = systemRegistry.get(constants.ASSET_TYPES_PATH)||[];
+
+        try {
+            var PrivilegedCarbonContext = Packages.org.wso2.carbon.context.PrivilegedCarbonContext;
+            PrivilegedCarbonContext.startTenantFlow();
+            var context = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+            context.setTenantId(tenantId, true);
+
+            var systemRegistry = server.systemRegistry(tenantId);
+            var collection = systemRegistry.get(constants.ASSET_TYPES_PATH) || [];
+
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+            if (log.isDebugEnabled()) {
+                log.debug('endTenantFlow');
+            }
+        }
+
         var typeCollection = collection.content ||[];
         var typeResource;
         var typeResourcePath;

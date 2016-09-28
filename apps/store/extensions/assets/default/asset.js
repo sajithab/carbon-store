@@ -20,14 +20,17 @@ asset.manager = function(ctx) {
     /**
      * The function augments the provided query to include published state information
      * @param  {[type]} query [description]
-     * @return {[type]}       The provided query object 
+     * @return {[type]}       The provided query object
      */
     var buildPublishedQuery = function(query) {
         query = query || {};
+        if (query.lcState) {
+            return query;
+        }
         var isLCEnabled = ctx.rxtManager.isLifecycleEnabled(ctx.assetType);
         //If lifecycles are not enabled then do nothing
-        if(!isLCEnabled){
-            if(log.isDebugEnabled()){
+        if (!isLCEnabled) {
+            if (log.isDebugEnabled()) {
                 log.debug('lifecycles disabled,not adding published states to search query');
             }
             return query;
@@ -134,14 +137,62 @@ asset.configure = function() {
                 lifecycleEnabled:true
             },
             ui: {
-                icon: 'fw fw-web-app',
+                icon: 'fw fw-resource',
                 iconColor: 'purple'
             },
             categories: {
-                categoryField: 'overview_category'
+                categoryField: ''
+            },
+            categorization: {
+                solarFacetsEnabled: true,
+                collapseInMenuCount: 2
             },
             search: {
                 searchableFields: ['all'],
+                defaultSearchSplit: function(term, searchTemplate){
+                    var terms ;
+                    var newStr = "";
+                    if(term.indexOf("\"") > -1){
+                        terms = term.split("\" \"");
+                        for(var i=0; i<terms.length; i++){
+                            if(i == 0){
+                                terms[i] = terms[i] + "\"";
+                            } else if(i == terms.length-1){
+                                terms[i] = "\"" + terms[i];
+                            } else {
+                                terms[i] = "\"" + terms[i] + "\"";
+                            }
+                        }
+                    } else {
+                        terms = term.split(" ");
+                    }
+
+                    if(terms.length == 1){
+                        if(term.indexOf("\"") > -1){
+                            newStr = searchTemplate.replace(/\*\$input\*/g,function(){
+                                return term;
+                            });
+                        } else {
+                            newStr = searchTemplate.replace(/\$input/g,function(){
+                                return term;
+                            });
+                        }
+                    } else {
+                        var orString = "(";
+                        for(var i=0; i<terms.length; i++){
+                            if(orString != "("){
+                                orString = orString + " OR ";
+                            }
+                            orString = orString + terms[i];
+                        }
+                        orString = orString + ")";
+                        newStr = searchTemplate.replace(/\*\$input\*/g,function(){
+                            return orString;
+                        });
+                    }
+
+                    return newStr;
+                }
             },
             paging: {
                 size: 10
@@ -228,6 +279,9 @@ asset.renderer = function(ctx) {
             },
             list: function(page) {
                 require('/modules/page-decorators.js').pageDecorators.assetCategoryDetails(ctx, page, this);
+                require('/modules/page-decorators.js').pageDecorators.assetCategoryFilterDetails(ctx, page);
+            }, taxonomy: function(page) {
+                require('/modules/page-decorators.js').pageDecorators.taxonomyAvailability(ctx, page, this);
             }
         }
     };

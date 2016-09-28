@@ -1,4 +1,11 @@
 $(document).ready(function() {
+    // Create version when the Enter key is pressed
+    $("#new-version").keyup(function(event){
+        if(event.keyCode == 13){
+            $("#btn-create-version").click();
+        }
+    });
+
     $('#btn-create-version').on('click', function(e) {
         e.preventDefault();
         var newVersion = $('#new-version').val();
@@ -19,7 +26,7 @@ $(document).ready(function() {
                 }),
                 type: 'POST',
                 success: function(response) {
-                    messages.alertSuccess('Asset version created successfully!,You will be redirected to new asset details page in few seconds.....');
+                    messages.alertSuccess('Asset version created successfully!,You will be redirected to new asset details page in few seconds...');
                     setTimeout(function() {
                         var path = caramel.url('assets/' + assetType + '/details/' + response.data);
                         window.location = path;

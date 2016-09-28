@@ -116,7 +116,7 @@ var pageDecorators = {};
                 entry = {};
                 entry.active = false;
                 entry.name = lifecycle;
-                if (page.assets.lifecycle === lifecycle) {
+                if (String(page.assets.lifecycle) === String(lifecycle)) {
                     entry.active = true;
                 }
                 modifiedLifecycles.push(entry);
@@ -261,6 +261,17 @@ var pageDecorators = {};
         }
         breadcrumb.crumb(page.assets.name.toUpperCase(),utils.buildUrl('details')+'/'+page.assets.id);
         page.breadcrumb = breadcrumb.build();
+    };
+    /**
+     * This method will check for taxonomies availability in rxt definition
+     * @param ctx request meta data
+     * @param page page data
+     */
+    pageDecorators.taxonomyAvailability = function (ctx, page) {
+        var rxtModule = require('rxt');
+        var coreApi = rxtModule.core;
+        var rxtManager = coreApi.rxtManager(ctx.tenantId);
+        page.taxonomyAvailability = (rxtManager.getTaxonomyAvailability(ctx.assetType).length > 0);
     };
     var isEmptyTable = function(table){
         var field;

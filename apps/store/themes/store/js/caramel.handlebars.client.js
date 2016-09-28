@@ -1,11 +1,15 @@
 (function (Handlebars) {
 
-    var caramelData = 'X-Caramel-Data',
-        resources = {
-            js: {},
-            css: {},
-            code: {}
-        };
+    var caramelData = 'X-Caramel-Data';
+    var caramelCompiledData = 'X-Compiled-Templates';
+    var acceptHeader = 'Accept';
+
+    var resources = {
+        js: {},
+        css: {},
+        code: {}
+    };
+    
     /**
      * register getLoginUrl
      * @param  {[type]} options [description]
@@ -82,12 +86,12 @@
         var context, domain, output;
 
         if (uri.match(tenantedRegex)) { //if matches to tenanted url pattern
-            context = uri.match(tenantedRegex)[1];
+            context = caramel.context;
             domain = uri.match(tenantedRegex)[2];
-            output = '/' + context + '/t/' + domain;
+            output = context + '/t/' + domain;
         } else if (uri.match(regex)){ //otherwise
-            context = uri.match(regex)[2];
-            output = '/' + context;
+            context = caramel.context;
+            output = context;
         }
         return output + path;
     });
@@ -289,11 +293,26 @@
 
     caramel.unloaded = {};
 
+    /**
+     * This Function can be used to render a given template from the server side.
+     * @param areas Partial that needs to be rendered.
+     * @param options Parameters for the AJAX request
+     */
+    caramel.serverRender = function (areas, options) {
+        var headers = options.headers || (options.headers = {});
+        options.dataType = 'text';
+        headers[caramelCompiledData] = JSON.stringify(areas);
+        headers[acceptHeader] = 'text';
+        $.ajax(options);
+        return;
+    };
+    
     caramel.data = function (areas, options) {
         var err = options.error,
             success = options.success,
             headers = options.headers || (options.headers = {});
         options.dataType = 'json';
+        options.cache = false;
         /*        options.success = function (data, status, xhr) {
          success(null, data);
          };

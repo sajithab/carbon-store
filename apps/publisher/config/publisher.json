@@ -1,7 +1,9 @@
 {
     "server": {
         "https": "%https.host%",
-        "http": "%http.host%"
+        "http": "%http.host%",
+        "context" : "/publisher",
+        "proxyServer" : ""
     },
     "user": {
         "username": "admin",
@@ -53,18 +55,26 @@
                 "attributes": {
                     "issuer": "publisher",
                     "identityProviderURL": "%https.host%/samlsso",
-                    "responseSigningEnabled": "true",
-                    "acs": "%https.host%/publisher/acs",
+                    "responseSigningEnabled": true,
+                    "acs": "https://localhost:9443/publisher/acs",
                     "identityAlias": "wso2carbon",
-                    "useTenantKey": false
+                    "defaultNameIDPolicy": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+                    "useTenantKey": false,
+                    "isPassive":false,
+                    "validateAssertionValidityPeriod": true,
+                    "validateAudienceRestriction": true,
+                    "assertionSigningEnabled": true
                 }
             },
             "basic": {
                 "attributes": {
-                    "loginURL": "%https.host%/publisher/pages/basic-auth-login"
+                    "loginURL": "%https.host%/%context%/pages/basic-auth-login"
                 }
             }
         }
+    },
+    "search": {
+        "defaultSearchTemplate":"name=*$input* OR *$input*"
     },
     "metrics": {
         "enabled": false,

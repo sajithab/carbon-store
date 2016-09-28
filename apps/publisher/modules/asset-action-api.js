@@ -30,6 +30,7 @@ var api = {};
     var ACTION_ADD_TAGS = 'add-tags';
     var ACTION_REMOVE_TAGS = 'remove-tags';
     var ACTION_RETRIEVE_TAGS = 'tags';
+    var ACTION_TAXA = 'taxonomies';
     var ACTION_CREATE_VERSION = 'create-version';
     var HTTP_ERROR_NOT_IMPLEMENTED = 501;
     var CONTENT_TYPE_JSON = 'application/json';
@@ -41,6 +42,7 @@ var api = {};
     var tagsAPI = require('/modules/tags-api.js').api;
     var assetAPI = require('/modules/asset-api.js').api;
     var utility = require('/modules/utility.js').rxt_utility();
+    var taxonomyAPI = require('/modules/taxonomy-api.js').api;
     var exceptionModule = utils.exception;
     var constants = rxtModule.constants;
     var msg = function(code, message, data) {
@@ -261,8 +263,9 @@ var api = {};
         for (var index in resources) {
             if (resources.hasOwnProperty(index)) {
                 var resource = resources[index];
-                if(resource.version === newVersion){
-                    return errorMsg(msg(409, 'Conflict in versions: '+ newVersion + ' already exist!')); /* REST POST request "409 Conflict" since the resource pointed exists.*/
+                if (resource.version === newVersion) {
+                    return errorMsg(msg(409, 'Conflict in versions: ' + newVersion + ' already exist!'));
+                    /* REST POST request "409 Conflict" since the resource pointed exists.*/
                 }
             }
         }
@@ -279,9 +282,13 @@ var api = {};
             }
             return errorMsg(msg(500, 'New version of asset of id:'+ options.id + ' could not be created.'));
 
-        } catch (e) {
-            log.error('Asset of type: ' + options.type + ' was not created due to ' ,e);
-            return errorMsg(msg(500, 'New version of asset of id :'+ options.id + ' could not be created.'));
+        } catch (err) {
+            if (String(err).indexOf('contains one or more illegal characters') > -1) {
+                return errorMsg(msg(400, 'Contains one or more illegal characters (~!@#;%^*()+={}|\\<>"\',), Version could not be created.'));
+            }
+            else {
+                return errorMsg(msg(500, 'New version of asset of id :' + options.id + ', Version could not be created.'));
+            }
         }
     };
     api.attachLifecycles = function(req, res, session, options) {
@@ -332,6 +339,32 @@ var api = {};
         }
         return errorMsg(msg(500, 'Could not retrieve lifecycles'));
     };
+    /**
+     * resolve the http methods and call related function for REST request
+     * @param  options Object containing asset id, type, new version
+     * @param  req     jaggery request
+     * @param  res     jaggery response
+     * @param  session  sessionId
+     */
+    api.taxaMethodsResolver = function (req, res, session, options) {
+        var method = req.getMethod();
+        var result;
+
+        switch (method) {
+            case 'POST':// POST endpoints
+                result = taxonomyAPI.addTaxa(req, res, session, options);
+                break;
+            case 'GET':// GET endpoints
+                result = taxonomyAPI.getTaxa(req, res, session, options);
+                break;
+            case 'DELETE': // DELETE endpoints
+                result = taxonomyAPI.removeTaxa(req, res, session, options);
+                break;
+            default:
+        }
+
+        return result;
+    };
     api.resolve = function(req, res, session, options) {
         var action = options.action;
         var result = errorMsg(msg(HTTP_ERROR_NOT_IMPLEMENTED, MSG_ERROR_NOT_IMPLEMENTED));
@@ -359,6 +392,9 @@ var api = {};
                 break;
             case ACTION_CREATE_VERSION:
                 result = api.createVersion(req, res, session, options);
+                break;
+            case ACTION_TAXA:
+                result = api.taxaMethodsResolver(req, res, session, options);
                 break;
             case ACTION_LC_VIEW:
                 result = api.lifecycles(req,res,session,options);

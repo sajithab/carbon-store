@@ -37,6 +37,9 @@ var constants = {};
     constants.ASSET_EXTENSION_ROOT='/extensions/assets';
     constants.DEFAULT_ASSET_EXTENSION='default';
     constants.APP_CONTEXT = 'rxt.app.context';
+    constants.PROXY_CONTEXT_PATH = 'proxyContextPath';
+    constants.SERVER_URL = 'serverURL';
+    constants.PROXY_URL = 'proxyURL';
     constants.TAGS_QUERY_PATH = '/_system/config/repository/components/org.wso2.carbon.registry/queries/allTags';
     constants.ASSET_TYPES_PATH ='/_system/governance/repository/components/org.wso2.carbon.governance/types';
     constants.TAGS_SERVICE = 'org.wso2.carbon.registry.indexing.service.TermsSearchService';
@@ -44,6 +47,7 @@ var constants = {};
     constants.AUTH_METHOD_BASIC = 'basic';
     constants.AUTH_METHOD_SSO = 'sso';
     constants.AUTH_METHOD_OTHER = 'other';
+    constants.DEFAULT_SEARCH_TEMPLATE = 'defaultSearchTemplate';
     /***
      * ES Feature Constants
      */
@@ -52,7 +56,7 @@ var constants = {};
     constants.SOCIAL_FEATURE_SCRIPT_KEY='socialScriptSource';
     constants.SOCIAL_FEATURE_SCRIPT_TYPE_KEY='socialScriptType';
     constants.SOCIAL_FEATURE_APP_URL_KEY='socialAppUrl';
-    constants.ASSET_DEFAULT_SORT='overview_createdtime';
+    constants.ASSET_DEFAULT_SORT='createdDate';
     constants.Q_SORT='sortBy';
     constants.Q_TAG='tag';
     constants.Q_SORT_ORDER='sort';
@@ -64,6 +68,7 @@ var constants = {};
     constants.Q_PROP_WILDCARD = '_wildcard'
     constants.PROP_DEFAULT = 'default';
     constants.DEFAULT_NAME_ATTRIBUTE = 'overview_name';
+    constants.DEFAULT_SEARCH_ATTRIBUTE = 'name';
     /**
      * Registry actions
      */
@@ -150,14 +155,14 @@ var constants = {};
     constants.DEFAULT_TAG_PAGIN = {
         start: 0,
         count: 10,
-        sortBy: 'overview_createdtime',
+        sortBy: 'createdDate',
         sortOrder: 'DESC'
     };
 
     constants.DEFAULT_ASSET_PAGIN={
         start:0,
         count:12,
-        sortBy: 'overview_createdtime',
+        sortBy: 'createdDate',
         sortOrder: 'DESC',
         paginationLimit: 100
     };
@@ -171,6 +176,8 @@ var constants = {};
     };
 
     constants.MultitenantConstants = Packages.org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+    constants.FILTER_CHAR = '/';
+    constants.ACCEPT_ALL = '*/*';
 
     /**
      * The version declared in the publisher.json

@@ -1,15 +1,33 @@
+/*
+ *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ *
+ */
 var messages = {};
-messages.alertSuccess = function(value){
+messages.alertSuccess = function (value) {
     $.notify.addStyle('happygreen', {
-        html: "<div><i class='icon fw fw-info'></i> <strong>Success! </strong><span data-notify-html/></div>",
+        html: "<div><i class='icon fa fa-check-circle'></i> <strong>Success! </strong><span data-notify-html/></div>",
         classes: {
             base: {
                 "white-space": "nowrap",
                 "background-color": "#5CB85C",
                 "padding": "10px",
-                "font-family":"Open Sans",
-                "color":"white",
-                "font-weight":300
+                "font-family": "Open Sans",
+                "color": "white",
+                "font-weight": 300
             },
             supergreen: {
                 "color": "white",
@@ -24,7 +42,7 @@ messages.alertSuccess = function(value){
         style: 'happygreen'
     });
 };
-messages.alertError = function(value){
+messages.alertError = function (value) {
     $.notify.addStyle('sadred', {
         html: "<div><i class='icon fw fw-error'></i> <strong>Error! </strong><span data-notify-html/></div>",
         classes: {
@@ -32,13 +50,13 @@ messages.alertError = function(value){
                 "white-space": "nowrap",
                 "background-color": "#D9534F",
                 "padding": "10px",
-                "font-family":"Open Sans",
-                "color":"white",
-                "font-weight":300
+                "font-family": "Open Sans",
+                "color": "white",
+                "font-weight": 300
             },
             superred: {
                 "color": "white",
-                "background-color":  "#D9534F"
+                "background-color": "#D9534F"
             }
         }
     });
@@ -49,21 +67,21 @@ messages.alertError = function(value){
         style: 'sadred'
     });
 };
-messages.alertInfo = function(value){
-        $.notify.addStyle('happygreen', {
-        html: "<div><i class='icon fw fw-info'></i> <strong>Success! </strong><span data-notify-html/></div>",
+messages.alertInfo = function (value) {
+    $.notify.addStyle('infoblue', {
+        html: "<div><i class='icon fw fw-info'></i> <strong>Info! </strong><span data-notify-html/></div>",
         classes: {
             base: {
                 "white-space": "nowrap",
-                "background-color": "#5CB85C",
+                "background-color": "#009DA7",
                 "padding": "10px",
-                "font-family":"Open Sans",
-                "color":"white",
-                "font-weight":300
+                "font-family": "Open Sans",
+                "color": "white",
+                "font-weight": 300
             },
             supergreen: {
                 "color": "white",
-                "background-color": "#5CB85C"
+                "background-color": "#009DA7"
             }
         }
     });
@@ -71,23 +89,24 @@ messages.alertInfo = function(value){
     $.notify(value, {
         globalPosition: 'top center',
         className: 'info',
-        style:'happygreen'
+        style: 'infoblue'
     });
 };
-messages.alertInfoLoader = function(value){
-    $.notify.addStyle('happygreen', {
-        html: "<div><strong></strong><span data-notify-html/></div>",
+messages.alertInfoLoader = function (value) {
+    $.notify.addStyle('infoloaderblue', {
+        html: "<span data-notify-html/>",
         classes: {
             base: {
                 "white-space": "nowrap",
-                "background-color": "#5CB85C",
+                "background-color": "#009DA7",
                 "padding": "10px",
-                "font-family":"Open Sans",
-                "color":"white",
-                "font-weight":300
+                "font-family": "Open Sans",
+                "color": "white",
+                "font-weight": 300
             },
-            superblue: {
-                "color": "white"
+            supergreen: {
+                "color": "white",
+                "background-color": "#009DA7"
             }
         }
     });
@@ -96,21 +115,21 @@ messages.alertInfoLoader = function(value){
         globalPosition: 'top center',
         className: 'info',
         autoHide: false,
-        style: 'happygreen'
+        style: 'infoloaderblue'
     });
 
 };
-messages.alertWarn = function(value){
+messages.alertWarn = function (value) {
     $.notify.addStyle('happyyellow', {
-        html: "<div><i class='icon fw fw-info'></i> <strong>Warning! </strong><span data-notify-html/></div>",
+        html: "<div><i class='icon fw fw-warning'></i> <strong>Warning! </strong><span data-notify-html/></div>",
         classes: {
             base: {
                 "white-space": "nowrap",
                 "background-color": "#F0AD4E",
                 "padding": "10px",
-                "font-family":"Open Sans",
-                "color":"white",
-                "font-weight":300
+                "font-family": "Open Sans",
+                "color": "white",
+                "font-weight": 300
             },
             superblue: {
                 "color": "white",
@@ -125,13 +144,13 @@ messages.alertWarn = function(value){
         style: 'happyyellow'
     });
 };
-messages.modal_pop = function(modalData){
+messages.modal_pop = function (modalData) {
     var title = modalData.title;
     var content = modalData.content;
     var footer = modalData.footer;
 
     //setting title
-    if(title){
+    if (title) {
         $('#esModalLabel').html(title).parent().show();
     } else {
         $('#esModalLabel').parent().hide();
@@ -139,14 +158,14 @@ messages.modal_pop = function(modalData){
     }
 
     //setting content
-    if(content){
+    if (content) {
         $('#esModalContent').show().html(content);
     } else {
         $('#esModalContent').hide();
     }
 
     //setting footer
-    if(footer){
+    if (footer) {
         $('#esModalFooter').show().html(footer);
     } else {
         $('#esModalFooter').hide();
@@ -155,6 +174,6 @@ messages.modal_pop = function(modalData){
     $('#esModal').modal();
 };
 
-messages.hideAlertInfoLoader = function(){
+messages.hideAlertInfoLoader = function () {
     $('.notifyjs-happygreen-info').remove();
 };

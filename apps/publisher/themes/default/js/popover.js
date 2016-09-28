@@ -43,10 +43,10 @@ var popoverFunction = (function(){
     return returnObj;
 })();
 
-var currentPageFunction = (function(){
+var currentPageFunction = (function () {
     var returnObj = {};
-    returnObj.init = function(){
-        switch(store.publisher.currentPage) {
+    returnObj.init = function () {
+        switch (store.publisher.currentPage) {
             case "details":
                 $(".btn-overview").addClass("tab-selected");
                 break;
@@ -61,6 +61,12 @@ var currentPageFunction = (function(){
                 break;
             case "lifecycle":
                 $(".btn-lifecycle").addClass("tab-selected");
+                break;
+            case "associations":
+                $(".btn-association").addClass("tab-selected");
+                break;
+            case "permissions":
+                $(".btn-permission").addClass("tab-selected");
                 break;
         }
     };

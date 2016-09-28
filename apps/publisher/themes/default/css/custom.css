@@ -559,6 +559,14 @@ i.cu-btn-exp-col {
     background:url('../img/icons/ico-lifecycle.png') 0.8em 1em no-repeat;
 }
 
+.btn-association {
+    background:url('../img/icons/ico-lifecycle.png') 0.8em 1em no-repeat;
+}
+
+.btn-permission {
+    background:url('../img/icons/ico-lifecycle.png') 0.8em 1em no-repeat;
+}
+
 .btn-copy {
     background:url('../img/icons/ico-copy.png') 0.8em 1em no-repeat;
 }
@@ -1138,7 +1146,14 @@ input[type="text"].error-field, input[type="password"].error-field, .custom-form
     width:400px !important;
     height:34px !important;
 }
-#saveButtons{
+
+#saveButtons {
+    margin-top:30px;
+    padding-top:10px;
+    border-top:1px solid #f5f5f5;
+}
+
+#updateButtons {
     margin-top:30px;
     padding-top:10px;
     border-top:1px solid #f5f5f5;
@@ -1147,6 +1162,7 @@ input[type="text"].error-field, input[type="password"].error-field, .custom-form
 .decorated-table-heading tr th {
     background: #ccc;
 }
+
 div.notifyjs-happyblue-base {
     padding: 19px;
 }
@@ -1381,6 +1397,7 @@ sup.required-field{
 }
 .no-image {
     position: relative;
+    padding-right: 55px;
 }
 .no-image::after {
     content: "\2757 " " " attr(data-noImage);
@@ -1397,3 +1414,56 @@ sup.required-field{
     height: 100%;
     background-color: #fff;
 }
+#deleteModal .form-inline .message {
+    display: none;
+}
+
+/* Search Option Popover */
+a#search-info {
+    width: 50px;
+    height: auto;
+    right: -221px;
+    left: 620px;
+    background-color: #fff;
+    color: #B3B3B3;
+    font-size: 20px;
+    margin-top: 2px;
+}
+
+.form-group > .popover {
+    background-color: #F7F7F7;
+    border: 0px;
+    opacity: 0.85;
+}
+
+.form-group > .popover > .popover-content {
+    background-color: #ECECEC;
+    border: 0px;
+    width: 320px;
+    color: #444;
+    font-size: 12px;
+    padding: 15px;
+    line-height: 20px;
+    margin-top: 0;
+}
+
+.form-group > .popover > .popover-content > ul {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+.form-group > .popover > .popover-content > h3 {
+    padding-left: 20px;
+    margin-top: 0;
+    padding-left: 0;
+    font-size: 18px;
+}
+
+.form-group > .popover.bottom > .arrow:after {
+    border-bottom-color: #ECECEC;
+}
+
+.lifecycle-state {
+    display: block;
+}
+/* </Search Option Popover> */

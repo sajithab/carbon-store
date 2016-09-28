@@ -99,8 +99,8 @@ var engine = caramel.engine('handlebars', (function() {
                     for (var index in values) {
                         value = values[index];
                         var delimter = value.indexOf(':')
-                        var option = value.substring(0, delimter);
-                        var text = value.substring(delimter + 1, value.length);
+                        var option = Handlebars.Utils.escapeExpression(value.substring(0, delimter));
+                        var text = Handlebars.Utils.escapeExpression(value.substring(delimter + 1, value.length));
                         if ((field.url == 'true'|| field.url == true) && text && text.lastIndexOf('http', 0) === 0){
                             output += '<tr><td>' + option + '</td><td><a href="'+text+'">' + text + '</a></td></tr>';
                         } else {
@@ -146,7 +146,7 @@ var engine = caramel.engine('handlebars', (function() {
             };
             var renderHeadingFieldPreview = function(table) {
                 var fields = table.fields;
-                var columns = table.columns;
+                var columns = ('columns' in table ) ? table.columns : 3;
                 var index = 0;
                 var out = '<tr>';
                 //The table should only be drawn if it is not empty
@@ -154,14 +154,14 @@ var engine = caramel.engine('handlebars', (function() {
                     return '';
                 }
                 for (var key in fields) {
-                    if ((index % 3) == 0) {
+                    if ((index % columns) == 0) {
                         index = 0;
                         out += '</tr><tr>';
                     }
                     if (fields[key].url == 'true' && fields[key].value && fields[key].value.lastIndexOf('http', 0) === 0){
-                        out += '<td><a href="'+fields[key].value+'">' + (fields[key].value || ' ') + '</a></td>';
+                        out += '<td><a href="'+Handlebars.Utils.escapeExpression(fields[key].value)+'">' + Handlebars.Utils.escapeExpression(fields[key].value || ' ') + '</a></td>';
                     } else if(fields[key].value) {
-                        out += '<td>' + (fields[key].value || ' ') + '</td>';
+                        out += '<td>' + Handlebars.Utils.escapeExpression(fields[key].value || ' ') + '</td>';
                     } else {
                         out+='';
                     }
@@ -289,7 +289,7 @@ var engine = caramel.engine('handlebars', (function() {
             };
             var renderOptions = function(value, values, field, mode, count) {
                 var id=(count)?field.name.tableQualifiedName+'_option_'+count:undefined;
-                var out = '<select ' + renderFieldMetaData(field,id,mode) + '>';
+                var out = '<select ' + renderFieldMetaData(field, id, mode) + '>';
 
                 for (var index in values) {
                     if (value && values[index].value == value) {
@@ -304,14 +304,14 @@ var engine = caramel.engine('handlebars', (function() {
             };
 
 
-            var renderOptionsForOptionsText = function(value, values, field,mode) {
-                var id=field.name.tableQualifiedName+'_option';
-                var out = '<select ' + renderFieldMetaData(field,id,mode) + '>';
+            var renderOptionsForOptionsText = function (value, values, field, mode) {
+                var id = field.name.tableQualifiedName + '_option';
+                var out = '<select ' + renderFieldMetaData(field, id, mode) + '>';
 
                 for (var index in values) {
                     if (value && values[index].value == value) {
                         out += '<option selected="selected">' + Handlebars.Utils.escapeExpression(value) + '</option>';
-                    }else{
+                    } else {
                         out += '<option>' + Handlebars.Utils.escapeExpression(values[index].value) + '</option>';
                     }
                 }
@@ -397,11 +397,11 @@ var engine = caramel.engine('handlebars', (function() {
 
             var renderEditableHeadingField = function(table) {
                 var fields = table.fields;
-                var columns = table.columns;
+                var columns = ('columns' in table ) ? table.columns : 3;
                 var index = 0;
                 var out = '<tr>';
                 for (var key in fields) {
-                    if ((index % 3) == 0) {
+                    if ((index % columns) == 0) {
                         index = 0;
                         out += '</tr><tr>';
                     }

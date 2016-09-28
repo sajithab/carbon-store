@@ -13,7 +13,9 @@
     },
     "server": {
         "https": "%https.host%",
-        "http": "%http.host%"
+        "http": "%http.host%",
+        "context" : "/store",
+        "proxyServer" : ""
     },
     "lifeCycleBehaviour": {
         "visibleIn": ["Published"]
@@ -30,18 +32,26 @@
                 "attributes": {
                     "issuer": "store",
                     "identityProviderURL": "%https.host%/samlsso",
-                    "responseSigningEnabled": "true",
-                    "acs": "%https.host%/store/acs",
+                    "responseSigningEnabled": true,
+                    "acs": "https://localhost:9443/store/acs",
                     "identityAlias": "wso2carbon",
-                    "useTenantKey": false
+                    "defaultNameIDPolicy": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+                    "useTenantKey": false,
+                    "isPassive":false,
+                    "validateAssertionValidityPeriod": true,
+                    "validateAudienceRestriction": true,
+                    "assertionSigningEnabled": true
                 }
             },
             "basic": {
                 "attributes": {
-                    "loginURL":"%https.host%/store/pages/basic-auth-login"
+                    "loginURL":"%https.host%/%context%/pages/basic-auth-login"
                 }
             }
         }
+    },
+    "search": {
+        "defaultSearchTemplate":"name=*$input* OR *$input*"
     },
     "metrics":{
         "enabled":false,

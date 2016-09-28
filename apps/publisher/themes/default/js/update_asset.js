@@ -17,7 +17,23 @@
  *
  */
 
+var appliedTaxonomy = [];
 $(function() {
+    var URL = caramel.context + '/apis/asset/' + store.publisher.assetId + '/taxonomies?type=' + store.publisher.type;
+
+    $.ajax({
+        url: URL,
+        type: 'GET',
+        async: false,
+        headers: {
+            Accept: "application/json"
+        },
+        success: function (response) {
+            appliedTaxonomy = response.data;
+            initTaxonomyBrowser(appliedTaxonomy);
+        }
+    });
+
     validator.initValidationEvents('form-asset-update',function(){});
     $('#editAssetButton').removeAttr('disabled');
     var obtainFormMeta = function(formId) {
@@ -152,7 +168,7 @@ $(function() {
     });
 
     /**
-     * Hides all the tables except the first table in order to improve 
+     * Hides all the tables except the first table in order to improve
      * readability
      */
     $('#form-asset-update .responsive-form-container').each(function(index){
@@ -160,7 +176,7 @@ $(function() {
             $(this).hide();
         }
     });
-    
+
     /**
      * Changes the field icon to collapsed state
      */
@@ -181,7 +197,19 @@ $(function() {
             }
         });
     });
+
+    $('#editAssetButton').click(function (e) {
+        var taxonomyList = $('#taxonomy-list')[0];
+        if (selectedTaxonomy && taxonomyList) {
+            taxonomyList.value = selectedTaxonomy.join(',');
+        }
+    });
+
+    $('input[type=reset]').click(function (e) {
+        initTaxonomyBrowser(appliedTaxonomy);
+    });
 });
-var showImageFull = function(img){
+
+var showImageFull = function (img) {
     $(img).next().trigger('click');
 };
